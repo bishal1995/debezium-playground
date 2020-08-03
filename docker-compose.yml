@@ -5,7 +5,14 @@ services:
     container_name: kafka-connect-ui
     image: landoop/kafka-connect-ui
     environment:
-      CONNECT_URL: http://debezium:80
+      CONNECT_URL: http://debezium:8083
+    networks:
+      - default
+    depends_on:
+      - debezium
+      - schema-registry
+      - kafka
+      - zookeeper
     ports:
     - 8000:8000
 
@@ -20,8 +27,18 @@ services:
       VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
       CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      HOST_NAME: debezium
+      REST_PORT: 8083
+      REST_HOST_NAME: debezium
+      ADVERTISED_PORT: 8083
+      ADVERTISED_HOST_NAME: debezium
+      BOOTSTRAP_SERVERS: kafka:9092
+    networks:
+      - default
     depends_on:
       - schema-registry
+      - kafka
+      - zookeeper
     ports:
     - 8083:8083
     - 80:80
@@ -30,11 +47,15 @@ services:
     container_name: schema-registry
     image: confluentinc/cp-schema-registry
     environment:
-      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL : zookeeper:2181
+#      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL : zookeeper:2181
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "PLAINTEXT://kafka:9092"
       SCHEMA_REGISTRY_HOST_NAME : schema-registry
       SCHEMA_REGISTRY_LISTENERS : http://schema-registry:8081
+    networks:
+      - default
     depends_on:
       - kafka
+      - zookeeper
     ports:
     - 8181:8181
 
@@ -48,6 +69,8 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       KAFKA_CREATE_TOPICS: "my_connect_configs:1:1, my_connect_offsets:1:1"
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    networks:
+      - default
     depends_on:
       - zookeeper
     ports:
@@ -56,5 +79,13 @@ services:
   zookeeper:
     image: wurstmeister/zookeeper:3.4.6
     container_name: zookeeper
+    networks:
+      - default
     ports:
       - 2181:2181
+
+
+networks:
+  default:
+    external:
+      name: debezium-net
