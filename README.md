@@ -7,10 +7,6 @@
 
 ```$xslt
 $ docker run -it --rm --name avro-consumer \
-    --link zookeeper:zookeeper \
-    --link kafka:kafka \
-    --link mysql:mysql \
-    --link schema-registry:schema-registry \
     debezium/connect:1.2 \
     /kafka/bin/kafka-console-consumer.sh \
       --bootstrap-server kafka:9092 \
