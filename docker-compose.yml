@@ -1,6 +1,18 @@
 version: "3"
 services:
 
+  schema-registry-ui:
+    container_name: schema-registry-ui
+    image: landoop/schema-registry-ui
+    environment:
+      SCHEMAREGISTRY_URL: http://schema-registry:8081
+    networks:
+      - default
+    depends_on:
+      - schema-registry
+    ports:
+      - 8080:8000
+
   kafka-connect-ui:
     container_name: kafka-connect-ui
     image: landoop/kafka-connect-ui
